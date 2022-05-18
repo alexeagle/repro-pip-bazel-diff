@@ -39,3 +39,51 @@ http_archive(
     sha256 = "5fa8f207ae5e7e1fb151cb56c68d82d407d4b0e57c460758a8635985d50eba6b",
     strip_prefix = "bazel-diff-%s" % _BAZEL_DIFF_VERSION,
 )
+
+http_archive(
+    name = "rules_proto",
+    sha256 = "66bfdf8782796239d3875d37e7de19b1d94301e8972b3cbd2446b332429b4df1",
+    strip_prefix = "rules_proto-4.0.0",
+    urls = [
+        "https://github.com/bazelbuild/rules_proto/archive/refs/tags/4.0.0.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "com_google_protobuf",
+    sha256 = "3bd7828aa5af4b13b99c191e8b1e884ebfa9ad371b0ce264605d347f135d2568",
+    strip_prefix = "protobuf-3.19.4",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.19.4.tar.gz"],
+)
+
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+
+rules_proto_dependencies()
+
+rules_proto_toolchains()
+
+# Using HEAD from 2021-08-09 to get fix for error messaging reported in
+# https://github.com/bazelbuild/rules_jvm_external/issues/541
+RULES_JVM_EXTERNAL_TAG = "d610f38add575692ae711a905822d65e126d96ae"
+RULES_JVM_EXTERNAL_SHA = "570d0b22982dffcf3878286d293e734b0d8da8525ee716af9d85622dc667e762"
+http_archive(
+    name = "rules_jvm_external",
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
+    sha256 = RULES_JVM_EXTERNAL_SHA,
+    urls = [
+        "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
+    ],
+)
+
+load("@bazel_diff//:repositories.bzl", "bazel_diff_dependencies")
+load("@bazel_diff//:artifacts.bzl", "BAZEL_DIFF_MAVEN_ARTIFACTS")
+bazel_diff_dependencies(RULES_JVM_EXTERNAL_TAG, RULES_JVM_EXTERNAL_SHA)
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+maven_install(
+    name = "bazel_diff_maven",
+    artifacts = BAZEL_DIFF_MAVEN_ARTIFACTS,
+    repositories = [
+        "https://jcenter.bintray.com/",
+    ],
+)
